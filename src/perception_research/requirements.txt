@@ -1,0 +1,18 @@
+# Perception/ML research extension -- Python dependencies only.
+# (The original ROS 2 / Gazebo robotics stack has its own separate
+# dependencies: ROS 2 Jazzy, gz-sim 8, ros2_control, gz_ros2_control -- see
+# the repository root README.md and docs/RESEARCH.md "Environment
+# availability" for install instructions. This package does not need any
+# of those to run: it imports only the pure-Python/NumPy parts of
+# kinematics.py / trajectory_generator.py.)
+
+numpy>=1.24
+scikit-learn>=1.3
+matplotlib>=3.7
+pytest>=7.4
+
+# Optional, NOT required by anything in this package today -- listed for
+# the documented future-work path of swapping MLPCoordinateRegressor for a
+# real CNN (see models.py's "MODEL CHOICE NOTE"):
+#   torch>=2.0
+#   opencv-python>=4.8

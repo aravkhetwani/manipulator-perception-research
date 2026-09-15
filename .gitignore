@@ -4,3 +4,12 @@ log/
 .vscode/
 __pycache__/
 *.pyc
+
+# Perception/ML research: generated dataset, trained models, and result
+# artifacts are large/binary and fully reproducible via run_experiments.*
+# (fixed seeds) -- keep them out of git rather than committing generated
+# output.
+data/perception/
+models/
+results/
+.pytest_cache/

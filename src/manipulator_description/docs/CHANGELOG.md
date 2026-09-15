@@ -278,3 +278,31 @@ inspected directly.
   confirms the object exists, is grasped, travels, and settles at the destination correctly whether
   or not the GUI happens to be displaying it. Headless runs (`headless:=true`), which this project
   already recommends for reliable testing in this environment, are unaffected by this GUI-only fault.
+
+## Research extension session — Perception/ML pipeline (`src/perception_research/`)
+This session's environment has no ROS 2, no Gazebo/gz-sim, no CUDA, no PyTorch, and no OpenCV
+installed (checked directly - see `docs/RESEARCH.md` §2 for the exact verification commands run).
+The perception/ML research extension was built as a fully separate, plain-Python package with no
+`rclpy` import anywhere in it, so it could actually be run, tested, and evaluated in this
+environment rather than left unverified. See `docs/RESEARCH.md` for the full write-up; this entry
+covers only bugs found and fixed while building it, matching this file's existing format.
+
+- **`trajectory_generator.py` import scoping (the only edit to any pre-existing robotics file)**:
+  moved the `builtin_interfaces`/`trajectory_msgs` ROS message imports from module scope into
+  `build_cubic_trajectory()` itself. Before this change the module could not be imported at all
+  without a ROS 2 install, even though `cubic_position()`/`cubic_velocity()` (the actual math) have
+  no ROS dependency. `build_cubic_trajectory()`'s behavior when ROS *is* installed is unchanged -
+  regression-tested in `perception_research/tests/test_existing_robotics_stack.py`.
+- **Reachable-workspace annulus overestimated true reachability by ~17%**: the obvious approach -
+  sample object (x, y) uniformly within the 2-link reach annulus derived from link lengths alone
+  (`|L2-L3| <= dist <= L2+L3`, same formula `pick_and_place.py`'s own code comments reference for its
+  hand-picked waypoint radius) - produced positions `kinematics.inverse_kinematics()` itself rejected
+  as unreachable 17.5% of the time (500-sample check), concentrated near the annulus's inner edge.
+  Root cause: the link-length annulus formula doesn't account for joint-limit cutoffs (q2 in ±90°,
+  q3 in ±135°), which shrink the *actually* reachable set near that edge - the same class of issue
+  Phase 8/9's own waypoint-picking notes already flag ("a radius that works for the grasp height does
+  not automatically work once the approach offset is added"). Fixed by rejection-sampling candidate
+  points against the real `inverse_kinematics()` call in
+  `sim_camera.sample_reachable_object_xy()` instead of trusting the closed-form annulus alone; 100%
+  of sampled dataset positions are now confirmed reachable at zero perception error (see
+  `docs/RESEARCH.md` §7.1's ground-truth baseline).

@@ -21,10 +21,6 @@ between the supplied waypoints - the waypoints here are dense enough that
 the controller's inter-point interpolation error is negligible.
 """
 
-from builtin_interfaces.msg import Duration
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-
-
 def cubic_position(q0, qf, t, T):
     if T <= 0.0:
         return qf
@@ -47,6 +43,13 @@ def build_cubic_trajectory(joint_names, q0, qf, duration_s, num_waypoints=20):
 
     Returns a trajectory_msgs/msg/JointTrajectory.
     """
+    # Imported here rather than at module level so that cubic_position()/
+    # cubic_velocity() (the actual math) can be reused by ROS-independent
+    # code (see src/perception_research/integration.py) without requiring a
+    # ROS 2 installation just to import this file.
+    from builtin_interfaces.msg import Duration
+    from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+
     assert len(q0) == len(qf) == len(joint_names)
     num_waypoints = max(2, num_waypoints)
 

@@ -4,6 +4,15 @@ A 3-DOF (R-R-R) robotic arm, simulated end-to-end in Gazebo Sim with ROS 2: URDF
 ros2_control-based joint control, hand-derived analytic kinematics, cubic trajectory generation,
 a 2-finger gripper, and an autonomous pick-and-place demo.
 
+Also includes a **perception/ML research extension** (`src/perception_research/`): a simulated
+vision-based object-localization pipeline (classical CV baseline + a learned model) connected to
+the existing analytical IK/trajectory stack, with a reproducible dataset, training/evaluation
+scripts, tests, and a results dashboard. See [`docs/RESEARCH.md`](docs/RESEARCH.md) — it does not
+require ROS 2 or Gazebo to run. Quick start:
+```bash
+bash run_experiments.sh        # or run_experiments.ps1 on Windows PowerShell
+```
+
 ## Tech Stack
 
 | Layer | Tech |
@@ -41,6 +50,20 @@ src/manipulator_description/
 └── docs/
     ├── PROJECT_DOCUMENTATION.md # architecture, DH parameters, kinematics derivation, validation methodology
     └── CHANGELOG.md             # phase-by-phase build log, bugs found and fixed, root causes
+
+src/perception_research/         # perception/ML research extension (plain Python, no ROS/rclpy)
+├── sim_camera.py                # synthetic pinhole-camera scene renderer + automatic ground truth
+├── dataset.py                   # reproducible dataset generation (fixed seeds, train/val/test/generalization)
+├── models.py                    # classical-CV centroid baseline + learned MLP coordinate regressor
+├── metrics.py                   # shared pixel/world error metrics
+├── train.py                     # trains and saves both models
+├── evaluate.py                  # all experiments -> results/metrics.json
+├── integration.py               # perception -> IK -> trajectory -> grasp-proxy pipeline (reuses kinematics.py)
+├── report.py                    # builds results/dashboard.html from metrics.json (no hardcoded numbers)
+└── tests/                       # pytest suite, incl. regression tests for the unchanged FK/IK/trajectory code
+
+docs/RESEARCH.md                 # research write-up: question, methodology, experiments, honest results/limitations
+run_experiments.sh / .ps1        # reproduce the full perception/ML pipeline end to end
 ```
 
 ## Robot
